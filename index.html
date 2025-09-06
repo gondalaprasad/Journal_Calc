@@ -298,23 +298,16 @@ Examples:
 
     <script>
         function processInput(input) {
-            if (!input.trim()) return { credits: [], debits: [] };
+            if (!input.trim()) return [];
             
             // Split by commas, new lines, or minus signs
             const entries = input.split(/[,\n\-]/)
                 .map(entry => entry.trim())
                 .filter(entry => entry.length > 0);
             
-            const credits = [];
-            const debits = [];
+            const processedEntries = [];
             
             entries.forEach(entry => {
-                const originalEntry = entry;
-                
-                // Check if it's explicitly marked as Dr or Cr
-                const isDr = /dr/i.test(entry);
-                const isCr = /cr/i.test(entry);
-                
                 // Remove all alphabetic characters and spaces, keep numbers, dots
                 const cleanedEntry = entry.replace(/[a-zA-Z\s]/g, '');
                 
@@ -322,43 +315,37 @@ Examples:
                 const number = parseFloat(cleanedEntry);
                 
                 if (!isNaN(number)) {
-                    const processedEntry = {
-                        original: originalEntry,
+                    processedEntries.push({
+                        original: entry,
                         cleaned: cleanedEntry,
                         value: number
-                    };
-                    
-                    if (isDr) {
-                        debits.push(processedEntry);
-                    } else {
-                        // Default to credit if no Dr specified, or if Cr specified
-                        credits.push(processedEntry);
-                    }
+                    });
                 }
             });
             
-            return { credits, debits };
+            return processedEntries;
         }
 
         function calculate() {
-            const allInput = document.getElementById('allInput').value;
+            const debitInput = document.getElementById('debitInput').value;
+            const creditInput = document.getElementById('creditInput').value;
             
-            const processed = processInput(allInput);
-            const { credits, debits } = processed;
+            const debitEntries = processInput(debitInput);
+            const creditEntries = processInput(creditInput);
             
-            let totalCredits = 0;
             let totalDebits = 0;
+            let totalCredits = 0;
             
             // Calculate totals
-            credits.forEach(entry => {
-                totalCredits += entry.value;
-            });
-            
-            debits.forEach(entry => {
+            debitEntries.forEach(entry => {
                 totalDebits += entry.value;
             });
             
-            // Final Result = Credits - Debits
+            creditEntries.forEach(entry => {
+                totalCredits += entry.value;
+            });
+            
+            // Final Result = Credits - Debits (Credits are positive, Debits are subtracted)
             const finalResult = totalCredits - totalDebits;
             
             // Display results
@@ -369,17 +356,17 @@ Examples:
             // Show processed data
             let processedHtml = '';
             
-            if (credits.length > 0) {
+            if (creditEntries.length > 0) {
                 processedHtml += '<strong>Credits (Added):</strong><br>';
-                credits.forEach(entry => {
+                creditEntries.forEach(entry => {
                     processedHtml += `"${entry.original}" → +${entry.value.toFixed(2)}<br>`;
                 });
                 processedHtml += '<br>';
             }
             
-            if (debits.length > 0) {
+            if (debitEntries.length > 0) {
                 processedHtml += '<strong>Debits (Subtracted):</strong><br>';
-                debits.forEach(entry => {
+                debitEntries.forEach(entry => {
                     processedHtml += `"${entry.original}" → -${entry.value.toFixed(2)}<br>`;
                 });
                 processedHtml += '<br>';
@@ -399,22 +386,27 @@ Examples:
         }
 
         function clearAll() {
-            document.getElementById('allInput').value = '';
+            document.getElementById('debitInput').value = '';
+            document.getElementById('creditInput').value = '';
             document.getElementById('results').style.display = 'none';
         }
 
         // Auto-calculate on input (with debounce)
         let debounceTimer;
         function setupAutoCalculate() {
-            document.getElementById('allInput').addEventListener('input', () => {
-                clearTimeout(debounceTimer);
-                debounceTimer = setTimeout(() => {
-                    const inputValue = document.getElementById('allInput').value.trim();
-                    
-                    if (inputValue) {
-                        calculate();
-                    }
-                }, 1000);
+            const inputs = ['debitInput', 'creditInput'];
+            inputs.forEach(inputId => {
+                document.getElementById(inputId).addEventListener('input', () => {
+                    clearTimeout(debounceTimer);
+                    debounceTimer = setTimeout(() => {
+                        const debitValue = document.getElementById('debitInput').value.trim();
+                        const creditValue = document.getElementById('creditInput').value.trim();
+                        
+                        if (debitValue || creditValue) {
+                            calculate();
+                        }
+                    }, 1000);
+                });
             });
         }
 
