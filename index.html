@@ -248,7 +248,29 @@ Examples:
                 ></textarea>
                 <div class="help-text">
                     Enter values line by line or comma-separated. Numbers with 'Dr' or plain numbers are treated as debits.
+                    <div class="results" id="results" style="display: none;">
+            <div class="final-result">
+                <div class="result-label">Final Result</div>
+                <div class="result-value" id="finalResult">0.00</div>
+            </div>
+            
+            <div class="result-grid">
+                <div class="result-item credit">
+                    <div class="result-label">Total Credits</div>
+                    <div class="result-value" id="totalCredits">0.00</div>
                 </div>
+                <div class="result-item debit">
+                    <div class="result-label">Total Debits</div>
+                    <div class="result-value" id="totalDebits">0.00</div>
+                </div>
+            </div>
+            
+            <div class="processed-data">
+                <h4>Processed Data:</h4>
+                <div class="processed-list" id="processedData"></div>
+            </div>
+        </div>
+    </div>
             </div>
             
             <div class="input-group credit">
@@ -386,9 +408,17 @@ Examples:
         }
 
         function clearAll() {
-            document.getElementById('debitInput').value = '';
-            document.getElementById('creditInput').value = '';
-            document.getElementById('results').style.display = 'none';
+            console.log('Clear function called');
+            
+            const debitInput = document.getElementById('debitInput');
+            const creditInput = document.getElementById('creditInput');
+            const resultsEl = document.getElementById('results');
+            
+            if (debitInput) debitInput.value = '';
+            if (creditInput) creditInput.value = '';
+            if (resultsEl) resultsEl.style.display = 'none';
+            
+            console.log('Clear function completed');
         }
 
         // Auto-calculate on input (with debounce)
